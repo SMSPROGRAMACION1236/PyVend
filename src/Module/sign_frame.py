@@ -1,5 +1,5 @@
 import tkinter as tk
-
+from src.components.log_button import  validate_info
 
 
 class SighUpPage(tk.Frame):
@@ -35,12 +35,18 @@ class SighUpPage(tk.Frame):
 
     def try_login(self):
         user = self.user_entry.get()
-        try:
-            password = int(self.password_entry.get())
-        except ValueError:
-            password = None
-        if user == self.correct_user and password == self.correct_password:
+        password = self.password_entry.get()
+        if validate_info(user, password):
             self.contenedor.show_main_frame()
         else:
             tk.messagebox.showerror("Error", "Usuario o contraseña incorrectos")
+        # user = self.user_entry.get()
+        # try:
+        #     password = int(self.password_entry.get())
+        # except ValueError:
+        #     password = None
+        # if user == self.correct_user and password == self.correct_password:
+        #     self.contenedor.show_main_frame()
+        # else:
+        #     tk.messagebox.showerror("Error", "Usuario o contraseña incorrectos")
 
