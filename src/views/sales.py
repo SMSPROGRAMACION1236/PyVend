@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from database import  database_manager as db_manager
 
 
 class Sales(tk.Toplevel):
@@ -53,8 +54,29 @@ class Sales(tk.Toplevel):
     def search_product(self):
         product_code = self.code_product.get()
         if not product_code:
-            messagebox.showwarning("Input Error", "Please enter a product code.")
+            messagebox.showwarning("Error de entrada", "Por favor, ingrese un código de producto.")
             return
+
+        # Obtener datos del producto desde la base de datos
+        product_data = db_manager.search_product(product_code)
+
+        # Limpiar la tabla de resultados
+        for row in self.results_table.get_children():
+            self.results_table.delete(row)
+
+        # Verificar si se encontraron resultados
+        if product_data:
+            for product in product_data:
+                # Insertar datos en el Treeview
+                self.results_table.insert("", "end", values=(
+                    product[4],  # Código del producto
+                    product[1],  # Nombre del producto
+                    product[2],  # Precio
+                    product[3]  # Stock
+                ))
+        else:
+            messagebox.showinfo("Sin resultados", "No se encontró ningún producto con el código ingresado.")
+
 
     def show_cart_table(self):
         # Tabla para mostrar los productos en el carrito
@@ -75,9 +97,9 @@ class Sales(tk.Toplevel):
         product_code = self.code_product.get()
         quantity = self.quantity.get()
 
-        # if not product_code or not quantity:
-        #     messagebox.showwarning("Input Error", "Please enter both product code and quantity.")
-        #     return
+        if not product_code or not quantity:
+            messagebox.showwarning("Input Error", "Please enter both product code and quantity.")
+            return
 
         try:
             quantity = int(quantity)
@@ -87,19 +109,28 @@ class Sales(tk.Toplevel):
             messagebox.showerror("Input Error", "Quantity must be a positive integer.")
             return
 
-        # Simulación de búsqueda del producto (reemplazar con consulta real)
-        product = self.get_product_by_code(product_code)
-        if not product:
+        # Buscar el producto en la base de datos
+        product_data = db_manager.search_product(product_code)
+        if not product_data:
             messagebox.showerror("Error", "Product not found.")
             return
 
-        product_id, name, price, stock = product
+        # Extraer datos del producto
+        product = product_data[0]  # Suponiendo que devuelve una lista de tuplas
+        product_id = product[0]
+        name = product[1]
+        price = product[2]
+        stock = product[3]
+
+        # Verificar stock disponible
         if quantity > stock:
             messagebox.showerror("Error", "Insufficient stock.")
             return
 
-        # Calcular subtotal y agregar al carrito
+        # Calcular subtotal
         subtotal = price * quantity
+
+        # Agregar producto al carrito
         self.cart_table.insert("", tk.END, values=(product_id, name, quantity, price, subtotal))
         self.update_total()
 
@@ -125,12 +156,22 @@ class Sales(tk.Toplevel):
         if not self.cart_table.get_children():
             messagebox.showwarning("Cart Empty", "The cart is empty. Add products before confirming the sale.")
             return
+        total = 0.0
+        cart_items =[]
 
         # Simulación de guardar la venta (reemplazar con lógica de base de datos)
-        for row in self.cart_table.get_children():
+        for row in self.cart_table.get_children(): # Recorre cada fila del carrito
             product_id, name, quantity, price, subtotal = self.cart_table.item(row, "values")
             # Aquí puedes guardar cada producto en la base de datos y actualizar el stock
-
+            total += float(subtotal)
+            cart_items.append((product_id, int(quantity), float(subtotal)))
+            # db_manager.update_stock(product_id, quantity)
+            # db_manager.load_sale_detail(product_id, quantity, subtotal)
+        id_sale = db_manager.load_sale(total)
+        for product_id, quantity, subtotal in cart_items:
+            db_manager.load_sale_detail(id_sale, product_id, quantity, subtotal)
+            db_manager.update_stock(product_id, quantity)  # Actualiza el stock del producto vendido
+        db_manager.load_sale(total)  # Guarda la venta en la base de datos
         messagebox.showinfo("Sale Confirmed", "The sale has been successfully confirmed!")
         self.cart_table.delete(*self.cart_table.get_children())  # Limpia el carrito
         self.update_total()  # Reinicia el total
