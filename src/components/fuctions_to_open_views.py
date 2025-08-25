@@ -10,3 +10,4 @@ def open_sales_view():
 def open_inventory_view():
     inventory = Inventary()
     inventory.mainloop()
+
