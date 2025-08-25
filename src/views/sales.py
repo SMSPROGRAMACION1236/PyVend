@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from database import  database_manager as db_manager
+from src.components.clean_productos_table import clean_product_table as tb_cls
 
 
 class Sales(tk.Toplevel):
@@ -61,8 +62,9 @@ class Sales(tk.Toplevel):
         product_data = db_manager.search_product(product_code)
 
         # Limpiar la tabla de resultados
-        for row in self.results_table.get_children():
-            self.results_table.delete(row)
+        # for row in self.results_table.get_children():
+        #     self.results_table.delete(row)
+        tb_cls(self.results_table)
 
         # Verificar si se encontraron resultados
         if product_data:
@@ -149,7 +151,7 @@ class Sales(tk.Toplevel):
 
         for item in selected_item:
             self.cart_table.delete(item)
-
+            print(item)
         self.update_total()
 
     def confirm_sale(self):
