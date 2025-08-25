@@ -1,7 +1,7 @@
 import tkinter as tk
-from Module.sign_frame import SighUpPage
-from Module.frames_operations import OperationsFrames
-from Module.container import Container
+from src.Module.sign_frame import SighUpPage
+from src.Module.frames_operations import OperationsFrames
+from src.Module.container import Container
 
 
 
